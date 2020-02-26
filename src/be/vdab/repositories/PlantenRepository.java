@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class PlantenRepository extends AbstractRepository {
+    // JDBC 5 PreparedStatement
     // Method die de prijs van alle planten met 10% verhoogt.
     public int verhoogAllePrijzenMet10Percent() throws SQLException {
         String sql = "update planten set prijs = prijs * 1.1";

@@ -5,6 +5,7 @@ import be.vdab.repositories.LeverancierRepository;
 import be.vdab.repositories.PlantenRepository;
 
 import java.sql.SQLException;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -37,6 +38,16 @@ public class Main {
             for (Leverancier leverancier : leverancierRepository.findAll()) {
                 System.out.println(leverancier);
             }
+
+            // JDBC 7.1 SQL Statements met parameters
+            // Toon alle leveranciers in een bepaalde woonplaats.
+            System.out.println("Woonplaats :");
+            Scanner scanner = new Scanner(System.in);
+            String woonplaats = scanner.nextLine();
+            for (Leverancier leverancier : leverancierRepository.findByWoonplaats(woonplaats)) {
+                System.out.println(leverancier);
+            }
+
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

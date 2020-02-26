@@ -69,4 +69,26 @@ public class LeverancierRepository extends AbstractRepository {
         return new Leverancier(result.getLong("id"), result.getString("naam"), result.getString("adres"),
                 result.getInt("postcode"), result.getString("woonplaats"), result.getDate("sinds").toLocalDate());
     }
+
+
+    // JDBC 7.1 SQL Statements met parameters
+    // Method die alle leveranciers terug geeft die in een bepaalde woonplaats gevestigd zijn.
+    public List<Leverancier> findByWoonplaats(String woonplaats) throws SQLException {
+        String sql = "select id, naam, adres, postcode, woonplaats, sinds from leveranciers WHERE woonplaats = ?";
+        try (Connection connection = super.getConnection();
+             // Prepare het SQL statement.
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            // Vul de eerste parameter (eerste "?") in.
+            statement.setString(1, woonplaats);
+            try (
+                    // Voer het SQL commando uit.
+                    ResultSet result = statement.executeQuery()) {
+                List<Leverancier> leveranciers = new ArrayList<>();
+                while (result.next()) {
+                    leveranciers.add(resultNaarLeverancier(result));
+                }
+                return leveranciers;
+            }
+        }
+    }
 }

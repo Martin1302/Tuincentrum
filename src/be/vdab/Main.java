@@ -12,13 +12,13 @@ public class Main {
     public static void main(String[] args) {
         // JDBC 5 PreparedStatement
         PlantenRepository plantenRepository = new PlantenRepository();
-        try {
-            // Verhoog van alle planten de prijs met 10%.
-            System.out.println(plantenRepository.verhoogAllePrijzenMet10Percent());
-            System.out.println("Alle planten aangepast.\n");
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.err);
-        }
+//        try {
+//            // Verhoog van alle planten de prijs met 10%.
+//            System.out.println(plantenRepository.verhoogAllePrijzenMet10Percent());
+//            System.out.println("Alle planten aangepast.\n");
+//        } catch (SQLException ex) {
+//            ex.printStackTrace(System.err);
+//        }
 
 
         // JDBC 6 ResultSet
@@ -83,6 +83,16 @@ public class Main {
             for (String plant : plantenRepository.findNamenByWoord(woord)) {
                 System.out.println(plant);
             }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 10 Transactions
+        // Method die de prijs van alle planten boven 100 € met 10% verhoogt en beneden 100 € met 5%
+        System.out.println("\nAlle planten prijzen boven 100 € worden verhoogd met 10%. Die eronder met 5%. Alles in één transactie.");
+        try {
+            plantenRepository.verhoogPrijzenBovenEnOnder100€();
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

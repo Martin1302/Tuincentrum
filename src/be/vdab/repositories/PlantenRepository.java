@@ -29,6 +29,7 @@ public class PlantenRepository extends AbstractRepository {
         try (Connection connection = super.getConnection();
              // Prepare de stored procedure call.
              CallableStatement statement = connection.prepareCall(call)) {
+            // Haal de parameters op
             statement.setString(1, "%" + woord + "%");
             // Voer de stored procedure call uit.
             try (ResultSet result = statement.executeQuery()) {
@@ -38,6 +39,28 @@ public class PlantenRepository extends AbstractRepository {
                 }
                 return plantenNamen;
             }
+        }
+    }
+
+
+    // JDBC 10 Transactions
+    // Method die de prijs van alle planten boven 100 € met 10% verhoogt en beneden 100 € met 5%
+    public void verhoogPrijzenBovenEnOnder100€() throws SQLException {
+        String sqlVanaf100 = "update planten set prijs = prijs * 1.1 where prijs >= 100";
+        String sqlTot100 = "update planten set prijs = prijs * 1.05 where prijs < 100";
+        // Connection en PreparedStatement erfen van AutoCloseable waardoor compiler zelf finally blok toevoegt die de connectie/statement sluit.
+        // Vraag een connectie aan.
+        try (Connection connection = super.getConnection();
+             // Prepare SQL statements.
+             PreparedStatement statementVanaf100 = connection.prepareStatement(sqlVanaf100);
+             PreparedStatement statementTot100 = connection.prepareStatement(sqlTot100)) {
+            // Zet AutoCommit af. AutoCommit (default = true) voert één commando uit in één transactie
+            connection.setAutoCommit(false);
+            // Voer SQL commandoos uit onder één transactie.
+            statementTot100.executeUpdate();
+            statementVanaf100.executeUpdate();
+            // Leg alle bewerkingen in de dB uitgevoerd vast dmv commit.
+            connection.commit();
         }
     }
 }

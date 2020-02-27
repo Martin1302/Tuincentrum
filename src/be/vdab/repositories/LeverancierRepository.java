@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class LeverancierRepository extends AbstractRepository {
     // JDBC 6.1 ResultSet - Kolomvolgnummers
@@ -80,14 +81,33 @@ public class LeverancierRepository extends AbstractRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             // Vul de eerste parameter (eerste "?") in.
             statement.setString(1, woonplaats);
-            try (
-                    // Voer het SQL commando uit.
-                    ResultSet result = statement.executeQuery()) {
+            try (// Voer het SQL commando uit.
+                 ResultSet result = statement.executeQuery()) {
                 List<Leverancier> leveranciers = new ArrayList<>();
                 while (result.next()) {
                     leveranciers.add(resultNaarLeverancier(result));
                 }
                 return leveranciers;
+            }
+        }
+    }
+
+    // JDBC 8.0 Record lezen aan de hand van ID.
+    // Method die een leverancier terug geeft aan de hand van zijn id.
+    public Optional<Leverancier> findById(Long id) throws SQLException {
+        String sql = "select id, naam, adres, postcode, woonplaats, sinds from leveranciers WHERE id = ?";
+        try (Connection connection = super.getConnection();
+             // Prepare het SQL statement.
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            // Vul de eerste parameter (eerste "?") in.
+            statement.setLong(1, id);
+            try (// Voer het SQL commando uit.
+                 ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    return Optional.of(resultNaarLeverancier(result));
+                } else {
+                    return Optional.empty();
+                }
             }
         }
     }

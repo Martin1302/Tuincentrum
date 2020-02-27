@@ -5,6 +5,7 @@ import be.vdab.repositories.LeverancierRepository;
 import be.vdab.repositories.PlantenRepository;
 
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Main {
@@ -38,16 +39,50 @@ public class Main {
             for (Leverancier leverancier : leverancierRepository.findAll()) {
                 System.out.println(leverancier);
             }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
 
-            // JDBC 7.1 SQL Statements met parameters
-            // Toon alle leveranciers in een bepaalde woonplaats.
-            System.out.println("Woonplaats :");
-            Scanner scanner = new Scanner(System.in);
-            String woonplaats = scanner.nextLine();
+
+        // JDBC 7.1 SQL Statements met parameters
+        // Toon alle leveranciers in een bepaalde woonplaats.
+        System.out.println("\nWoonplaats :");
+        Scanner scanner = new Scanner(System.in);
+        String woonplaats = scanner.nextLine();
+        try {
             for (Leverancier leverancier : leverancierRepository.findByWoonplaats(woonplaats)) {
                 System.out.println(leverancier);
             }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
 
+
+        // JDBC 8.0 Record lezen aan de hand van ID.
+        // Vraag een leverancier op aan de hand van een id.
+        System.out.println("\nLeverancier Id :");
+        Long id = scanner.nextLong();
+        try {
+            Optional<Leverancier> optionalLeverancier = leverancierRepository.findById(id);
+            if (optionalLeverancier.isPresent()) {
+                System.out.println(optionalLeverancier.get());
+            } else {
+                System.out.println("Leverancier met id = " + id + " niet gevonden!");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 9 Stored procedures
+        // Method die alle planten opzoekt waarin een bepaald woord voorkomt.
+        System.out.println("\nType een woord in waarop je alle planten mee zal zoeken waarin dit woord voorkomt:");
+        scanner.skip("\n");
+        String woord = scanner.nextLine();
+        try {
+            for (String plant : plantenRepository.findNamenByWoord(woord)) {
+                System.out.println(plant);
+            }
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

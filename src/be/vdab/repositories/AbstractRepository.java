@@ -5,7 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 abstract class AbstractRepository {
-    private static final String URL = "jdbc:mysql://localhost/tuincentrum?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Brussels";
+    private static final String URL = "jdbc:mysql://localhost/tuincentrum?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Brussels&noAccessToProcedureBodies=true";
+    // "noAccessToProcedureBodies=true"   is vereist om stored procedures in de database te kunnen oproepen.
     // private static final String USER = "root";
     // private static final String PASSWORD = "mysql";
     // User "cursist" en passwoord "cursist" zijn toegevoegd in MySQL Workbench. Zie cursus JDBC hfdst 3.3

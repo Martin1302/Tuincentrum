@@ -2,10 +2,8 @@ package be.vdab.repositories;
 
 import be.vdab.domain.Leverancier;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -108,6 +106,47 @@ public class LeverancierRepository extends AbstractRepository {
                 } else {
                     return Optional.empty();
                 }
+            }
+        }
+    }
+
+
+    // JDBC 13.1 Datum tijd expliciet
+    // Method die de leveranciers terug geeft die actief zijn sinds 01/01/2000.
+    public List<Leverancier> findLeveranciersBySinds2000() throws SQLException {
+        String sql = "select id, naam, adres, postcode, woonplaats, sinds from leveranciers WHERE sinds >= {d '2000-01-01'}";
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            try (ResultSet result = statement.executeQuery()) {
+                List<Leverancier> leveranciers = new ArrayList<>();
+                while (result.next()) {
+                    leveranciers.add(resultNaarLeverancier(result));
+                }
+                connection.commit();
+                return leveranciers;
+            }
+        }
+    }
+
+
+    // JDBC 13.2 Datum tijd als parameter
+    // Method die de leveranciers terug geeft die actief zijn sinds 01/01/2000.
+    public List<Leverancier> findLeveranciersBySindsVanaf(LocalDate datum) throws SQLException {
+        String sql = "select id, naam, adres, postcode, woonplaats, sinds from leveranciers WHERE sinds >= ?";
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            statement.setDate(1, java.sql.Date.valueOf(datum));
+            connection.setAutoCommit(false);
+            try (ResultSet result = statement.executeQuery()) {
+                List<Leverancier> leveranciers = new ArrayList<>();
+                while (result.next()) {
+                    leveranciers.add(resultNaarLeverancier(result));
+                }
+                connection.commit();
+                return leveranciers;
             }
         }
     }

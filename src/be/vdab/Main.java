@@ -1,10 +1,14 @@
 package be.vdab;
 
 import be.vdab.domain.Leverancier;
+import be.vdab.exceptions.SoortBestaatAlException;
 import be.vdab.repositories.LeverancierRepository;
 import be.vdab.repositories.PlantenRepository;
+import be.vdab.repositories.SoortenRepository;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -12,13 +16,13 @@ public class Main {
     public static void main(String[] args) {
         // JDBC 5 PreparedStatement
         PlantenRepository plantenRepository = new PlantenRepository();
-//        try {
-//            // Verhoog van alle planten de prijs met 10%.
-//            System.out.println(plantenRepository.verhoogAllePrijzenMet10Percent());
-//            System.out.println("Alle planten aangepast.\n");
-//        } catch (SQLException ex) {
-//            ex.printStackTrace(System.err);
-//        }
+        try {
+            // Verhoog van alle planten de prijs met 10%.
+            System.out.println(plantenRepository.verhoogAllePrijzenMet10Percent());
+            System.out.println("Alle planten aangepast.\n");
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
 
 
         // JDBC 6 ResultSet
@@ -93,6 +97,61 @@ public class Main {
         System.out.println("\nAlle planten prijzen boven 100 € worden verhoogd met 10%. Die eronder met 5%. Alles in één transactie.");
         try {
             plantenRepository.verhoogPrijzenBovenEnOnder100€();
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 11 Isolation level
+        // Method die een soort zal toevoegen aan tabel soorten.
+        System.out.println("\nVoeg een nieuwe planten soort toe : naam = ");
+        String naam = scanner.nextLine();
+        SoortenRepository soortenRepository = new SoortenRepository();
+        try {
+            soortenRepository.create(naam);
+            System.out.println("Nieuwe planten soort toegevoegd.");
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        } catch (SoortBestaatAlException ex) {
+            System.out.println("De planten soort bestaat al.");
+        }
+
+
+        // JDBC 12 Autonum kolommen
+        // Method die een soort zal toevoegen aan tabel soorten. Quasi identiek aan JDBC 11.
+        System.out.println("\nVoeg een nieuwe planten soort toe : naam =  en return the autonum gegenereerde ID.");
+        naam = scanner.nextLine();
+        try {
+            long nieuweID = soortenRepository.create2(naam);
+            System.out.println("Nieuwe planten soort toegevoegd. Het autonum field is : " + nieuweID);
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        } catch (SoortBestaatAlException ex) {
+            System.out.println("De planten soort bestaat al.");
+        }
+
+
+        // JDBC 13.1 Datum tijd expliciet
+        // Method die de leveranciers terug geeft die actief zijn na een bepaalde datum.
+        System.out.println("\nAlle leveranciers die actief zijn na 01/01/2000 :");
+        try {
+            for (Leverancier leverancier : leverancierRepository.findLeveranciersBySinds2000()) {
+                System.out.println(leverancier);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 13.2 Datum tijd als parameter
+        // Method die de leveranciers terug geeft die actief zijn na een bepaalde datum.
+        System.out.println("\nAlle leveranciers die actief zijn na uw ingegeven datum (dd/mm/yyyy) :");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/y");
+        LocalDate datum = LocalDate.parse(scanner.nextLine(), formatter);
+        try {
+            for (Leverancier leverancier : leverancierRepository.findLeveranciersBySindsVanaf(datum)) {
+                System.out.println(leverancier);
+            }
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

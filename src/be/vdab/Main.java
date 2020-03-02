@@ -155,5 +155,16 @@ public class Main {
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }
+
+        // JDBC 13.3 Functies op datum en tijd
+        // Method die de leveranciers terug geeft die actief werden in het jaar 2000.
+        System.out.println("\nAlle leveranciers die actief geworden zijn in het jaar 2000.");
+        try {
+            for (Leverancier leverancier : leverancierRepository.findLeveranciersGewordenInHetJaar()) {
+                System.out.println(leverancier);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
     }
 }

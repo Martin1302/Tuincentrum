@@ -150,4 +150,23 @@ public class LeverancierRepository extends AbstractRepository {
             }
         }
     }
+
+    // JDBC 13.3 Functies op datum en tijd
+    // Method die de leveranciers terug geeft die actief werden in het jaar 2000.
+    public List<Leverancier> findLeveranciersGewordenInHetJaar() throws SQLException {
+        String sql = "select id, naam, adres, postcode, woonplaats, sinds from leveranciers WHERE {fn year(sinds)} = 2000";
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            try (ResultSet result = statement.executeQuery()) {
+                List<Leverancier> leveranciers = new ArrayList<>();
+                while (result.next()) {
+                    leveranciers.add(resultNaarLeverancier(result));
+                }
+                connection.commit();
+                return leveranciers;
+            }
+        }
+    }
 }

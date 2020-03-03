@@ -1,11 +1,14 @@
 package be.vdab;
 
 import be.vdab.domain.Leverancier;
+import be.vdab.exceptions.PlantNietGevondenException;
+import be.vdab.exceptions.PrijsTeLaagException;
 import be.vdab.exceptions.SoortBestaatAlException;
 import be.vdab.repositories.LeverancierRepository;
 import be.vdab.repositories.PlantenRepository;
 import be.vdab.repositories.SoortenRepository;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -163,6 +166,42 @@ public class Main {
             for (Leverancier leverancier : leverancierRepository.findLeveranciersGewordenInHetJaar()) {
                 System.out.println(leverancier);
             }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 14.1  Lock
+        // Method die de prijs van een plant maximaal tot de helft verminderd.
+        System.out.println("\nGeef de ID van de plant wiens prijs verlaagt wordt :");
+        long plantId = scanner.nextLong();
+        System.out.println("Geef nieuwe prijs voor de plant :");
+        BigDecimal nieuwePrijs = scanner.nextBigDecimal();
+        try {
+            plantenRepository.verlaagPrijs(plantId, nieuwePrijs);
+            System.out.println("Prijs aangepast");
+        } catch (PlantNietGevondenException ex) {
+            System.out.println("Plant niet gevonden");
+        } catch (PrijsTeLaagException ex) {
+            System.out.println("Nieuwe prijs voldoet niet aan minimum prijs");
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 14.2  Lock
+        // Method die de prijs van een plant maximaal tot de helft verminderd.
+        System.out.println("\nGeef de ID van de plant wiens prijs verlaagt wordt :");
+        plantId = scanner.nextLong();
+        System.out.println("Geef nieuwe prijs voor de plant :");
+        nieuwePrijs = scanner.nextBigDecimal();
+        try {
+            plantenRepository.verlaagPrijs2(plantId, nieuwePrijs);
+            System.out.println("Prijs aangepast");
+        } catch (PlantNietGevondenException ex) {
+            System.out.println("Plant niet gevonden");
+        } catch (PrijsTeLaagException ex) {
+            System.out.println("Nieuwe prijs voldoet niet aan minimum prijs");
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

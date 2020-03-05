@@ -12,8 +12,10 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
@@ -202,6 +204,25 @@ public class Main {
             System.out.println("Plant niet gevonden");
         } catch (PrijsTeLaagException ex) {
             System.out.println("Nieuwe prijs voldoet niet aan minimum prijs");
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 15.2  Het SQL Keyword
+        // Method die de namen van de planten laat zien aan de hand van id's ingegeven door de gebruiker
+        System.out.println("Geef een aantal planten Id's op waarvan je de planten naam wilt weten (0 om te stoppen):");
+        Set<Long> plantenIds = new HashSet<>();
+        long plantenId = scanner.nextInt();
+        while (plantenId != 0) {
+            plantenIds.add(plantenId);
+            plantenId = scanner.nextInt();
+        }
+
+        try {
+            for (String plantenNaam : plantenRepository.findNamenByIds(plantenIds)) {
+                System.out.println(plantenNaam);
+            }
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);
         }

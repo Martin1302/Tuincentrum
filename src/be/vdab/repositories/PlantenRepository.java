@@ -8,6 +8,7 @@ import java.math.RoundingMode;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PlantenRepository extends AbstractRepository {
     // JDBC 5 PreparedStatement
@@ -159,6 +160,34 @@ public class PlantenRepository extends AbstractRepository {
                     connection.rollback();
                     throw new PrijsTeLaagException();
                 }
+            }
+        }
+    }
+
+
+    // JDBC 15.2  Het SQL Keyword
+    // Method die de namen van de planten laat zien aan de hand van id's ingegeven door de gebruiker
+    public List<String> findNamenByIds(Set<Long> ids) throws SQLException {
+        StringBuilder sql = new StringBuilder("select naam from planten where id in (");
+        for (int i = 0; i != ids.size(); i++) {
+            sql.append("?,");
+        }
+        sql.setCharAt(sql.length() - 1, ')');
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            int index = 1;
+            for (long id : ids) {
+                statement.setLong(index++, id);
+            }
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            try (ResultSet result = statement.executeQuery()) {
+                List<String> plantenNamen = new ArrayList<>();
+                while (result.next()) {
+                    plantenNamen.add(result.getString("naam"));
+                }
+                connection.commit();
+                return plantenNamen;
             }
         }
     }

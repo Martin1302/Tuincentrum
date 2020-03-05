@@ -2,10 +2,9 @@ package be.vdab.repositories;
 
 import be.vdab.exceptions.SoortBestaatAlException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SoortenRepository extends AbstractRepository {
     // JDBC 11 Isolation level
@@ -82,6 +81,54 @@ public class SoortenRepository extends AbstractRepository {
                     }
                 }
             }
+        }
+    }
+
+
+    // JDBC 15.4  Batch update (meerdere netwerk paketten)
+    // Method die een reeks nieuwe soorten toevoegt aan tabel soorten.
+    public void create(List<String> soortNamen) throws SQLException {
+        String sql = "insert into soorten (naam) values (?)";
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            // Loop over de ingegeven lijst van nieuwe soort namen en voer het sql commando uit.
+            for (String soortNaam : soortNamen) {
+                statement.setString(1, soortNaam);
+                statement.executeUpdate();
+            }
+            connection.commit();
+            System.out.println(soortNamen.size() + " soorten toegevoegd");
+        }
+    }
+
+    // JDBC 15.4  Batch update (één netwerk pakket)  Zoals hierboven maar dan met echte batch update
+    // Method die een reeks nieuwe soorten toevoegt aan tabel soorten en de ID's geef.
+    public List<Long> create2(List<String> soortNamen) throws SQLException {
+        String sql = "insert into soorten (naam) values (?)";
+        try (Connection connection = super.getConnection();
+             // Prepare het statement en zorg ervoor dat de automatisch gegenereerde IDs gekend zijn.
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            for (String soortNaam : soortNamen) {
+                statement.setString(1, soortNaam);
+                // Voeg het stetement toe aan het netwerk pakket maar verstuur het nog niet.
+                statement.addBatch();
+            }
+            // Stuur het netwerk pakket naar de dB.
+            statement.executeBatch();
+            // Haal de auto gegenereerde IDs op.
+            List<Long> gegenereerdeIds = new ArrayList<>();
+            try (ResultSet result = statement.getGeneratedKeys()) {
+                while (result.next()) {
+                    gegenereerdeIds.add(result.getLong(1));
+                }
+            }
+            connection.commit();
+            System.out.println(soortNamen.size() + " soorten toegevoegd");
+            return gegenereerdeIds;
         }
     }
 }

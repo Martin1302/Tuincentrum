@@ -1,6 +1,7 @@
 package be.vdab;
 
 import be.vdab.domain.Leverancier;
+import be.vdab.dto.PlantNaamEnLeverancierNaam;
 import be.vdab.exceptions.PlantNietGevondenException;
 import be.vdab.exceptions.PrijsTeLaagException;
 import be.vdab.exceptions.SoortBestaatAlException;
@@ -12,10 +13,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -218,10 +216,58 @@ public class Main {
             plantenIds.add(plantenId);
             plantenId = scanner.nextInt();
         }
-
         try {
             for (String plantenNaam : plantenRepository.findNamenByIds(plantenIds)) {
                 System.out.println(plantenNaam);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 15.3  Join
+        // Method die de naam van de plant en de naam van de leverancier geeft voor rode planten.
+        System.out.println("\nNaam van alle rode planten en hun leverancier naam : ");
+        try {
+            for (PlantNaamEnLeverancierNaam naamDuo : plantenRepository.findRodePlantenEnHunLeveranciers()) {
+                System.out.println(naamDuo.getPlantNaam() + " - " + naamDuo.getLeverancierNaam());
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 15.4  Batch update (meerdere netwerk paketten)
+        // Method die een reeks nieuwe soorten toevoegt aan tabel soorten.
+        System.out.println("\nVoeg een aantal nieuwe soorten toe (STOP om te eindigen) :");
+        List<String> nieuweSoortNamen = new ArrayList<>();
+        String nieuweSoortNaam = scanner.nextLine();
+        while (!"STOP".equals(nieuweSoortNaam)) {
+            nieuweSoortNamen.add(nieuweSoortNaam);
+            nieuweSoortNaam = scanner.nextLine();
+        }
+        try {
+            // Voeg de nieuwe soorten toe
+            soortenRepository.create(nieuweSoortNamen);
+        } catch (SQLException ex) {
+            ex.printStackTrace(System.err);
+        }
+
+
+        // JDBC 15.4  Batch update (één netwerk pakket)  Zoals hierboven maar dan met echte batch update
+        // Method die een reeks nieuwe soorten toevoegt aan tabel soorten en de ID's geef.
+        System.out.println("\nVoeg een aantal nieuwe soorten toe (STOP om te eindigen)  en toon hun auto gegenereerde Ids");
+        nieuweSoortNamen.clear();
+        nieuweSoortNaam = scanner.nextLine();
+        while (!"STOP".equals(nieuweSoortNaam)) {
+            nieuweSoortNamen.add(nieuweSoortNaam);
+            nieuweSoortNaam = scanner.nextLine();
+        }
+        try {
+            // Voeg de nieuwe soorten toe en laat de Ids zien.
+            List<Long> gegenereerdeIds = soortenRepository.create2(nieuweSoortNamen);
+            for (long gegenereerdeId : gegenereerdeIds) {
+                System.out.println(gegenereerdeId);
             }
         } catch (SQLException ex) {
             ex.printStackTrace(System.err);

@@ -1,5 +1,6 @@
 package be.vdab.repositories;
 
+import be.vdab.dto.PlantNaamEnLeverancierNaam;
 import be.vdab.exceptions.PlantNietGevondenException;
 import be.vdab.exceptions.PrijsTeLaagException;
 
@@ -188,6 +189,28 @@ public class PlantenRepository extends AbstractRepository {
                 }
                 connection.commit();
                 return plantenNamen;
+            }
+        }
+    }
+
+
+    // JDBC 15.3  Join
+    // Method die de naam van de plant en de naam van de leverancier geeft voor rode planten.
+    public List<PlantNaamEnLeverancierNaam> findRodePlantenEnHunLeveranciers() throws SQLException {
+        String sql = "select planten.naam as plantnaam, leveranciers.naam as leveranciernaam " +
+                "from planten inner join leveranciers on planten.leverancierid = leveranciers.id " +
+                " where kleur = 'rood'";
+        try (Connection connection = super.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setAutoCommit(false);
+            try (ResultSet result = statement.executeQuery()) {
+                List<PlantNaamEnLeverancierNaam> list = new ArrayList<>();
+                while (result.next()) {
+                    list.add(new PlantNaamEnLeverancierNaam(result.getString("plantnaam"), result.getString("leveranciernaam")));
+                }
+                connection.commit();
+                return list;
             }
         }
     }

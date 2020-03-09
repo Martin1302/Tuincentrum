@@ -26,9 +26,11 @@ public class SoortenRepository extends AbstractRepository {
             try (// Voer SQL commandoos uit onder één transactie.
                  ResultSet result = statementSelect.executeQuery()) {
                 if (result.next()) {
+                    // De soort bestaat al.
                     connection.commit();
                     throw new SoortBestaatAlException();
                 } else {
+                    // De soort bestaat nog niet
                     try (PreparedStatement statementInsert = connection.prepareStatement(insert)) {
                         statementInsert.setString(1, naam);
                         statementInsert.executeUpdate();
@@ -55,6 +57,7 @@ public class SoortenRepository extends AbstractRepository {
             connection.setAutoCommit(false);
             try {
                 statementInsert.executeUpdate();
+                // Insert successfully executed. Retrieve autonum column ID.
                 try (ResultSet result = statementInsert.getGeneratedKeys()) {
                     result.next();
                     // Get the new column ID
